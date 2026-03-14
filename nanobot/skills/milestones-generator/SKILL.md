@@ -5,15 +5,20 @@ description: >
   from the user, generates editable milestones, waits for confirmation,
   then schedules Telegram reminders and gates progression behind GitHub
   code review.
+alwaysLoad: true
 ---
 
 # Coding milestones skill
 
 ## Phase 1 — capturing the plan
 
-When the user describes a coding project or goal in chat (look for phrases
+Check if a user describes a coding plan for educational purpose. This would include either :
+1. Describes a coding project or goal in chat (look for phrases
 like "I want to build", "my plan is", "help me plan", "break this into
-milestones"), do NOT ask for a file. Instead:
+milestones"), or
+2. Describes a coding plan (look for the clarity, like deadline/project length, input, output, goals, etc)
+
+If it does, do this:
 
 1. Call `parse_plan` with the user's raw message as `plan_text`.
 2. Present the resulting milestones in a clear, readable format:
@@ -33,6 +38,7 @@ milestones"), do NOT ask for a file. Instead:
    to lock this in and start reminders."
 4. Do NOT write milestones.json yet. Do NOT create any cron jobs yet.
    Hold the draft in the conversation only.
+5. ONLY give the user, (a) the project milestone headline, (b) the due date, and (c) the goal. And besides the "Reply with any changes" mentioned in point (3), DON'T GIVE ANY OTHER TEXT ASIDE THAT.
 
 ## Phase 2 — editing the draft
 
