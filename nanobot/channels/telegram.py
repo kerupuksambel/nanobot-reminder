@@ -470,6 +470,8 @@ class TelegramChannel(BaseChannel):
             This is the prompt:
             {replied_text}
 
+            Use the skill: milestones-generator
+
             And this is the response:
             {msg.text}
             """
