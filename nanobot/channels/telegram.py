@@ -11,6 +11,7 @@ from loguru import logger
 from telegram import BotCommand, ReplyParameters, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from telegram.request import HTTPXRequest
+from telegram.constants import ParseMode
 
 from nanobot.bus.events import OutboundMessage
 from nanobot.bus.queue import MessageBus
@@ -120,7 +121,7 @@ def _markdown_to_telegram_html(text: str) -> str:
     # 6. Links [text](url) - must be before bold/italic to handle nested cases
     text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2">\1</a>', text)
 
-    # 7. Bold **text** or __text__
+    # 7. Bold *text* or __text__
     text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
     text = re.sub(r'__(.+?)__', r'<b>\1</b>', text)
 
@@ -224,6 +225,14 @@ class TelegramChannel(BaseChannel):
         self._app.add_handler(CommandHandler("stop", self._forward_command))
         self._app.add_handler(CommandHandler("restart", self._forward_command))
         self._app.add_handler(CommandHandler("help", self._on_help))
+
+        # Custom code planner commands
+        self._app.add_handler(CommandHandler("codeplan", self._on_codeplan))
+
+        # Handle replies
+        self._app.add_handler(
+            MessageHandler(filters.REPLY, self._on_reply)
+        )
 
         # Add message handler for text, photos, voice, documents
         self._app.add_handler(
@@ -338,9 +347,9 @@ class TelegramChannel(BaseChannel):
                 with open(media_path, 'rb') as f:
                     await sender(
                         chat_id=chat_id,
-                        **{param: f},
+                        *{param: f},
                         reply_parameters=reply_params,
-                        **thread_kwargs,
+                        *thread_kwargs,
                     )
             except Exception as e:
                 filename = media_path.rsplit("/", 1)[-1]
@@ -349,7 +358,7 @@ class TelegramChannel(BaseChannel):
                     chat_id=chat_id,
                     text=f"[Failed to send: {filename}]",
                     reply_parameters=reply_params,
-                    **thread_kwargs,
+                    *thread_kwargs,
                 )
 
         # Send text content
@@ -376,7 +385,7 @@ class TelegramChannel(BaseChannel):
             await self._app.bot.send_message(
                 chat_id=chat_id, text=html, parse_mode="HTML",
                 reply_parameters=reply_params,
-                **(thread_kwargs or {}),
+                *(thread_kwargs or {}),
             )
         except Exception as e:
             logger.warning("HTML parse failed, falling back to plain text: {}", e)
@@ -385,7 +394,7 @@ class TelegramChannel(BaseChannel):
                     chat_id=chat_id,
                     text=text,
                     reply_parameters=reply_params,
-                    **(thread_kwargs or {}),
+                    *(thread_kwargs or {}),
                 )
             except Exception as e2:
                 logger.error("Error sending Telegram message: {}", e2)
@@ -398,7 +407,7 @@ class TelegramChannel(BaseChannel):
         thread_kwargs: dict | None = None,
     ) -> None:
         """Simulate streaming via send_message_draft, then persist with send_message."""
-        draft_id = int(time.time() * 1000) % (2**31)
+        draft_id = int(time.time() * 1000) % (2*31)
         try:
             step = max(len(text) // 8, 40)
             for i in range(step, len(text), step):
@@ -436,6 +445,43 @@ class TelegramChannel(BaseChannel):
             "/stop — Stop the current task\n"
             "/help — Show available commands"
         )
+
+    async def _on_codeplan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Handle /codeplan command"""
+        if not update.message:
+            return
+
+        await update.message.reply_text(
+            "Sure\\! Reply with your:\n"
+            "\\- *Goal*\\. Make this *concise* and *detailed*\n"
+            "\\- *Deadline*\\. How long you want the learning to commence\\?\n"
+            "\\- *Daily Time Budget*\\. How long you could commit to learn\\?\n"
+            "\\- *Experience* \\(optional\\)\\. Specify your skill level\\. If not specified, I will assume you're a beginner\\."
+        , parse_mode=ParseMode.MARKDOWN_V2)
+
+    async def _on_reply(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        msg = update.message
+        user = update.effective_user
+
+        if(msg.reply_to_message and msg.reply_to_message.from_user.id == context.bot.id):
+            replied_text = msg.reply_to_message.text
+
+            prompt = f"""
+            This is the prompt:
+            {replied_text}
+
+            And this is the response:
+            {msg.text}
+            """
+
+            await self._handle_message(
+                sender_id=self._sender_id(user),
+                chat_id=msg.chat_id,
+                content=prompt,
+                media=None,
+                metadata=self._build_message_metadata(msg, user),
+                session_key=self._derive_topic_session_key(msg),
+            )
 
     @staticmethod
     def _sender_id(user) -> str:

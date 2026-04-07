@@ -78,6 +78,7 @@ class SkillsLoader:
                 return builtin_skill.read_text(encoding="utf-8")
 
         return None
+        
 
     def load_skills_for_context(self, skill_names: list[str]) -> str:
         """
@@ -157,6 +158,12 @@ class SkillsLoader:
         if meta and meta.get("description"):
             return meta["description"]
         return name  # Fallback to skill name
+    
+    def _get_skill_preferred_model(self, name: str, default_model: str) -> str:
+        meta = self.get_skill_metadata(name)
+        if meta and meta.get("model"):
+            return meta["model"]
+        return default_model # If no model provided, change to default model in config.json
 
     def _strip_frontmatter(self, content: str) -> str:
         """Remove YAML frontmatter from markdown content."""
