@@ -25,3 +25,6 @@ nano.*.save
 # Python venv in ./env
 env/
 
+# Node
+node_modules/
+dist/
