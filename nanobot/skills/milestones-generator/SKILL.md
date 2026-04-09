@@ -5,7 +5,6 @@ description: >
   from the user, generates editable milestones, waits for confirmation,
   then schedules Telegram reminders and gates progression behind GitHub
   code review.
-alwaysLoad: true
 ---
 
 # Coding milestones skill
@@ -28,7 +27,7 @@ If it does, do this:
 4. Create a phased roadmap (easy → medium → hard).
 5. Allocate time per phase in HOURS (not vague days).
 6. Ensure the total time does not exceed the available time.
-7. Tag each phase with skills (e.g., CRUD, HTTP, concurrency).
+7. Tag each phase with skills.
 8. Avoid over-scoping. Keep it achievable.
 
 IMPORTANT:

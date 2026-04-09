@@ -52,6 +52,12 @@ class ParsePlanTool(Tool):
 A user has described a coding project in chat. Extract every meaningful
 deliverable phase as a milestone and estimate realistic deadlines.
 
+Ensure you put the user's prior experiences AND the time budget properly.
+If no prior experience detected in their message, just imply the user is a beginner.
+
+Be honest with the expectation. If a user is a newbie, but they expected a complex subject
+with a small time window (or time budget), don't be afraid to extend the time needed.
+
 Be specific in the goal descriptions — they will later be used as a code
 review rubric, so each goal must clearly state what "done" looks like.
 
@@ -62,11 +68,11 @@ Return ONLY a JSON array, no markdown fences, no prose:
     "title": "Short milestone name",
     "goal": "Concrete description of what done looks like for this phase",
     "deadline": "YYYY-MM-DD",
-    "status": "pending"
+    "status": "pending",
   }}
 ]
 
-User's project description:
+Here's the interaction with the bot:
 {plan_text}
 """
         response = await self._provider.complete(prompt)
