@@ -1,12 +1,6 @@
-import { Telegraf } from "telegraf";
-import { TELEGRAM_BOT_TOKEN } from "./config/index";
+import { createBot } from "./bot";
+import { TELEGRAM_BOT_TOKEN } from "./config/telegram";
+import { env } from "./utils/env";
 
-export const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
-
-bot.start((ctx) => {
-  ctx.reply("Welcome to your coding judge bot 🚀");
-});
-
-bot.command("ping", (ctx) => {
-  ctx.reply("pong");
-});
+const bot = createBot(env.TELEGRAM_BOT_TOKEN)
+bot.launch()
