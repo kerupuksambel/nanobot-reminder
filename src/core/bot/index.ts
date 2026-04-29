@@ -3,12 +3,6 @@ import { messageHandler } from "@/core/bot/handlers/messages";
 import TelegramBot from "node-telegram-bot-api";
 import { createPlanHandler } from "./handlers/commands/plan";
 
-import https from "node:https";
-import dns from "node:dns";
-
-let lastGoodIP: string | null = null;
-
-
 export const createBot = (token: string) => {
     // Set polling to true for long polling
     const bot = new TelegramBot(
@@ -28,11 +22,12 @@ export const createBot = (token: string) => {
     // Author only access - filtering messages by username
     bot.on('message', (msg) => {
         const username = msg.from?.username;
-        
-        console.log("ENV TOKEN:", env.TELEGRAM_BOT_TOKEN);
+
+        console.log(`Received message from ${username}: ${msg.text}`);
 
         if(env.TELEGRAM_ALLOWED_USER){
             if (!username || username != env.TELEGRAM_ALLOWED_USER){
+                console.log(`[WARN] Unauthorized user ${username} attempted to interact with the bot.`);
                 return; // Ignore messages from unauthorized users
             }
         }
