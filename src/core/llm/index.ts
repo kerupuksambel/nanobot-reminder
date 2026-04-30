@@ -15,6 +15,7 @@ export class LLM {
 
         this.client = new OpenAI({
             apiKey: env.LLM_API_KEY,
+            baseURL: env.LLM_PROVIDER_URL
         });
     }
 

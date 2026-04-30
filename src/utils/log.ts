@@ -12,7 +12,7 @@ export class Log {
         console.log(`[INFO] ${message}`);
     }
 
-    public static debug(message: string) {
+    public static debug(message: any) {
         console.log(`[DEBUG] ${message}`);
     }
 }

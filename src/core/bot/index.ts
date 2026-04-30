@@ -1,7 +1,8 @@
 import { env } from "@/config";
 import { messageHandler } from "@/core/bot/handlers/messages";
 import TelegramBot from "node-telegram-bot-api";
-import { createPlanHandler } from "./handlers/commands/plan";
+import { PlanHandler } from "./handlers/commands/plan";
+import Container from "typedi";
 
 export const createBot = (token: string) => {
     // Set polling to true for long polling
@@ -41,9 +42,12 @@ export const createBot = (token: string) => {
         }
     });
 
+    bot.on("polling_error", (msg) => console.log(msg));
+
     // Planning phase - command handler
     bot.onText(/\/create_plan(.*)/, (msg, match) => {
-        createPlanHandler(bot, msg, match);
+        const planHandler = new PlanHandler
+        planHandler.create(bot, msg, match);
     });
     
     // Submission phase
