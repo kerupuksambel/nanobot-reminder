@@ -5,10 +5,12 @@ import { Agent } from "./agents/base";
 import { readFileSync } from "fs";
 import path from "path";
 import { Log } from "@/utils/log";
+import { Service } from "typedi";
 
+@Service()
 export class LLM {
-    model: string;
-    client: OpenAI;
+    private model: string;
+    private client: OpenAI;
 
     constructor(model: string) {
         this.model = model;
