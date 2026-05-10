@@ -2,10 +2,11 @@ import TelegramBot from "node-telegram-bot-api";
 import { CommandHandlerBase } from "./base";
 import { Service } from "typedi";
 
+
 @Service()
 export class PlanHandler extends CommandHandlerBase {
     constructor(){
-        super("gpt-oss-120b")
+        super()
     }
 
     public create = async (bot: TelegramBot, msg: TelegramBot.Message, match: RegExpExecArray | null) => {

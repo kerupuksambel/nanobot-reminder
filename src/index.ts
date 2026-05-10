@@ -1,27 +1,31 @@
-import { createBot } from "./core/bot";
-import { env } from "./config";
+import "reflect-metadata";
+import { Container } from "typedi";
+import { LLM } from "./core/llm";
+import { Log } from "./utils/log";
 import dns from "node:dns";
+import { Telebot } from "./core/bot";
+
 dns.setDefaultResultOrder("ipv4first");
-console.info("[Telegram] Initiating Telegram bot...");
 
-// In-memory
-let bot;
+const start = async () => {
+    // Init LLM once — validates env config
+    Container.get(LLM);
+    Log.info("[LLM] Initialized");
 
-const startBot = async () => {
     for (let i = 1; i <= 10; i++) {
         try {
-            // node-telegram-bot-api starts automatically with polling
-            bot = createBot(env.TELEGRAM_BOT_TOKEN);
-            console.log("Started");
+            Container.get(Telebot);
+            Log.info("[Telegram] Bot started");
             return;
         } catch (e) {
-            console.log(`Error upon ${i} tries, reason: ${e}`);
-            console.log("Retrying...", i);
-            await new Promise((r) => setTimeout(r, 1500));
+            Log.error(`[Telegram] Start failed (${i}/10): ${e}`);
+            if (i < 10) {
+                await new Promise((r) => setTimeout(r, 1500));
+            }
         }
     }
-    throw new Error("Failed to start bot");
-};
-startBot();
 
-console.info("[Telegram] Bot initiation succeed.");
+    throw new Error("Failed to start bot after 10 retries");
+};
+
+start();

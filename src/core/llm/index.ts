@@ -9,48 +9,40 @@ import { Service } from "typedi";
 
 @Service()
 export class LLM {
-    private model: string;
     private client: OpenAI;
 
-    constructor(model: string) {
-        this.model = model;
-
+    constructor() {
         this.client = new OpenAI({
             apiKey: env.LLM_API_KEY,
             baseURL: env.LLM_PROVIDER_URL
         });
     }
 
-    public startConversation = async (
+    public async startConversation(
         chat: string,
         agents: Agent[],
-    ): Promise<string> => {
-        const agentsPrompt = agents
-            .map(async (agent) => {
-                // read agent prompt
+        model?: string,
+    ): Promise<string> {
+        const agentsPrompts = await Promise.all(
+            agents.map(async (agent) => {
                 try {
-                    const agentPrompt = readFileSync(
+                    return readFileSync(
                         path.resolve(agent.markdownAbsPath),
-                        {
-                            encoding: "utf-8",
-                        },
+                        { encoding: "utf-8" },
                     );
-
-                    return agentPrompt;
                 } catch {
-                    // handle error on not found
                     Log.warning(
                         `${agent.name} Markdown file not found in ${agent.markdownAbsPath}. Skipping.`,
                     );
                     return "";
                 }
-            })
-            .join("/n");
+            }),
+        );
 
-        const prompt = agentsPrompt + "\n" + chat;
+        const agentsPrompt = agentsPrompts.join("\n");
 
         const result = await this.client.responses.create({
-            model: this.model,
+            model: model ?? env.LLM_DEFAULT_MODEL,
             input: [
                 { role: "system", content: agentsPrompt },
                 { role: "user", content: chat },
@@ -58,5 +50,5 @@ export class LLM {
         });
 
         return result.output_text;
-    };
+    }
 }
