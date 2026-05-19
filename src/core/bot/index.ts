@@ -3,6 +3,7 @@ import TelegramBot from "node-telegram-bot-api";
 import { env } from "@/config";
 import { PlanHandler } from "./handlers/commands/plan";
 import { messageHandler } from "./handlers/messages";
+import { Log } from "@/utils/log";
 
 @Service()
 export class Telebot {
@@ -47,5 +48,7 @@ export class Telebot {
         this.bot.onText(/\/create_plan(.*)/, (msg, match) => {
             this.planHandler.create(this.bot, msg, match);
         });
+
+        Log.debug("[Telebot] Handlers registered.")
     }
 }

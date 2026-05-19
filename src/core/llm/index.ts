@@ -41,6 +41,7 @@ export class LLM {
 
         const agentsPrompt = agentsPrompts.join("\n");
 
+        Log.debug(`[LLM] Prompt: ${chat.slice(0, 100)}... has been started.`)
         const result = await this.client.responses.create({
             model: model ?? env.LLM_DEFAULT_MODEL,
             input: [
@@ -48,6 +49,8 @@ export class LLM {
                 { role: "user", content: chat },
             ],
         });
+
+        Log.debug(`[LLM] Prompt: ${chat.slice(0, 100)}... has been finished.`)
 
         return result.output_text;
     }

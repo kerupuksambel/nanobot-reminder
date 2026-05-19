@@ -9,8 +9,8 @@ dns.setDefaultResultOrder("ipv4first");
 
 const start = async () => {
     // Init LLM once — validates env config
-    Container.get(LLM);
     Log.info("[LLM] Initialized");
+    Log.debug(JSON)
 
     for (let i = 1; i <= 10; i++) {
         try {
@@ -25,7 +25,7 @@ const start = async () => {
         }
     }
 
-    throw new Error("Failed to start bot after 10 retries");
+    throw new Error("Failed to start bot after 10 retries. Exiting.");
 };
 
 start();
