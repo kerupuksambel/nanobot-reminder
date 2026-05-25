@@ -6,7 +6,7 @@ import { removeCodeFormatting } from "@/utils/formatter";
 import { formatDate } from "@/utils/date";
 import { SessionRepository } from "@/modules/sessions/repository";
 
-// TEMP: will put this onto a dedicated Type
+// TODO: will put this onto a dedicated Type
 interface CreatePlanHandleResponse {
     success: boolean,
     data?: {
