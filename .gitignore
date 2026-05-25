@@ -5,3 +5,6 @@ build/
 # Node
 node_modules/
 dist/
+
+# DB
+database.db

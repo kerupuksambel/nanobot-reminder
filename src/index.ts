@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import { Container } from "typedi";
-import { LLM } from "./core/llm";
 import { Log } from "./utils/log";
 import dns from "node:dns";
 import { Telebot } from "./core/bot";
@@ -8,10 +7,6 @@ import { Telebot } from "./core/bot";
 dns.setDefaultResultOrder("ipv4first");
 
 const start = async () => {
-    // Init LLM once — validates env config
-    Log.info("[LLM] Initialized");
-    Log.debug(JSON)
-
     for (let i = 1; i <= 10; i++) {
         try {
             Container.get(Telebot);

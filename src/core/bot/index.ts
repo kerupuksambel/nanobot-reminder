@@ -1,6 +1,6 @@
 import { Service, Inject } from "typedi";
 import TelegramBot from "node-telegram-bot-api";
-import { env } from "@/config";
+import { env } from "@/config/env";
 import { PlanHandler } from "./handlers/commands/plan";
 import { messageHandler } from "./handlers/messages";
 import { Log } from "@/utils/log";

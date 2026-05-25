@@ -12,6 +12,9 @@ const envSchema = z.object({
 	LLM_API_KEY: z.string().min(1),
 	LLM_PROVIDER_URL: z.string().min(1),
 	LLM_DEFAULT_MODEL: z.string().optional().default(FALLBACK_MODEL),
+
+	DB_FILE: z.string().optional().default('database.db'),
+	DB_TOKEN: z.string().optional()
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

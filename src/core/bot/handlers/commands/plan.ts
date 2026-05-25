@@ -4,6 +4,7 @@ import { Service } from "typedi";
 import { Log } from "@/utils/log";
 import { removeCodeFormatting } from "@/utils/formatter";
 import { formatDate } from "@/utils/date";
+import { SessionRepository } from "@/modules/sessions/repository";
 
 // TEMP: will put this onto a dedicated Type
 interface CreatePlanHandleResponse {
@@ -28,6 +29,14 @@ export class PlanHandler extends CommandHandlerBase {
         // Extract command parameter text if available
         const text = match ? match[1].trim() : '';
         
+        // Add new session
+        const repo = new SessionRepository()
+        const sessionID = await repo.addSession()
+        
+        await repo.addChat(sessionID, {
+            sender: "user",
+            content: text
+        })
         // const response = await this.llm.startConversation("Please reply this message with ONLY your model name.", [])
         const response = await this.llm.startConversation(`
                 You're an experienced, helpful programming coach, with specialty of parsing a goal onto an actionable, chunk-sized, ready to execute learning plans.
@@ -95,18 +104,29 @@ export class PlanHandler extends CommandHandlerBase {
                 throw new Error(`JSON failed. Response: ${response}`)
             }
 
-            if(parsed.success && parsed.data){
-                await bot.sendMessage(
-chatId, `Here's my proposed plan:
-${parsed.data.map((plan, planIdx) => `
-${planIdx + 1}. ${plan.name}
+            var message = "";
 
-Allocated hours: ${plan.length}
-Deadline: ${formatDate(new Date(plan.deadline))}`).join('\n')} 
-`);
+            if(parsed.success && parsed.data){
+                const planList = parsed.data
+                    .map((plan, planIdx) => [
+                        `${planIdx + 1}. ${plan.name}`,
+                        `   Allocated hours: ${plan.length}`,
+                        `   Deadline: ${formatDate(new Date(plan.deadline))}`,
+                    ].join('\n'))
+                    .join('\n\n');
+
+                message = `Here's my proposed plan:\n\n${planList}`
+
+                await bot.sendMessage(chatId, message);
             }else{
+                message = parsed.error
                 await bot.sendMessage(chatId, `${parsed.error}`)
             }
+
+            await repo.addChat(sessionID, {
+                sender: "bot",
+                content: message
+            })
         }catch(e){
             Log.error(String(e))
         }
