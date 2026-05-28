@@ -1,6 +1,7 @@
 import { LLM } from "@/core/llm";
 import { db } from "@/infras/db";
 import { SessionRepository } from "@/modules/sessions/repository";
+import { ChatSender } from "@/modules/sessions/schema";
 import { Log } from "@/utils/log";
 import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import TelegramBot from "node-telegram-bot-api";
@@ -37,11 +38,22 @@ export class MessageHandler {
 
         if(session){
             await this.sessionRepository.addChat(session.id, {
-                sender: "user",
+                sender: ChatSender.USER,
                 content: text
             })
         }
 
-        await bot.sendMessage(chatId, `You sent: ${text}`);
+        const response = session 
+        ? await this.llm.continueConversation(text, session.chats, [], 'deepseek/deepseek-v4-flash')
+        : text
+
+        await bot.sendMessage(chatId, `${response}`);
+
+        if(session){
+            await this.sessionRepository.addChat(session.id, {
+                sender: ChatSender.BOT,
+                content: response
+            })
+        }
     }
 }

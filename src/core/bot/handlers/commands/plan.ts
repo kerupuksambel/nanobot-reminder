@@ -1,10 +1,12 @@
 import TelegramBot from "node-telegram-bot-api";
 import { CommandHandlerBase } from "./base";
-import { Service } from "typedi";
+import Container, { Service } from "typedi";
 import { Log } from "@/utils/log";
 import { removeCodeFormatting } from "@/utils/formatter";
 import { formatDate } from "@/utils/date";
 import { SessionRepository } from "@/modules/sessions/repository";
+import { ChatSender } from "@/modules/sessions/schema";
+import { UserRepository } from "@/modules/users/repository";
 
 // TODO: will put this onto a dedicated Type
 interface CreatePlanHandleResponse {
@@ -20,8 +22,14 @@ interface CreatePlanHandleResponse {
 
 @Service()
 export class PlanHandler extends CommandHandlerBase {
+    private sessionRepository: SessionRepository
+    private userRepository: UserRepository
+    
     constructor(){
         super()
+
+        this.sessionRepository = Container.get(SessionRepository)
+        this.userRepository = Container.get(UserRepository)
     }
 
     public create = async (bot: TelegramBot, msg: TelegramBot.Message, match: RegExpExecArray | null) => {
@@ -29,14 +37,31 @@ export class PlanHandler extends CommandHandlerBase {
         // Extract command parameter text if available
         const text = match ? match[1].trim() : '';
         
+
         // Add new session
-        const repo = new SessionRepository()
-        const sessionID = await repo.addSession()
+        const sessionID = await this.sessionRepository.addSession()
         
-        await repo.addChat(sessionID, {
-            sender: "user",
+        await this.sessionRepository.addChat(sessionID, {
+            sender: ChatSender.USER,
             content: text
         })
+
+        const username = msg.from?.username
+
+        if(!username){
+            throw new Error("Username not defined.")
+        }
+
+        const user = this.userRepository.getUser(username)
+
+        if(!user){
+            await this.userRepository.addUser(username)
+        }
+
+        await this.userRepository.updateUserSession(
+            username,
+            sessionID
+        )
         // const response = await this.llm.startConversation("Please reply this message with ONLY your model name.", [])
         const response = await this.llm.startConversation(`
                 You're an experienced, helpful programming coach, with specialty of parsing a goal onto an actionable, chunk-sized, ready to execute learning plans.
@@ -123,8 +148,8 @@ export class PlanHandler extends CommandHandlerBase {
                 await bot.sendMessage(chatId, `${parsed.error}`)
             }
 
-            await repo.addChat(sessionID, {
-                sender: "bot",
+            await this.sessionRepository.addChat(sessionID, {
+                sender: ChatSender.BOT,
                 content: message
             })
         }catch(e){

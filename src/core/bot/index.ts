@@ -7,7 +7,7 @@ import { Log } from "@/utils/log";
 
 @Service()
 export class Telebot {
-    private bot: TelegramBot;
+    public bot: TelegramBot;
 
     constructor(
         @Inject() private planHandler: PlanHandler,

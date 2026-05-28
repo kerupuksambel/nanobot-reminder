@@ -9,7 +9,9 @@ dns.setDefaultResultOrder("ipv4first");
 const start = async () => {
     for (let i = 1; i <= 10; i++) {
         try {
-            Container.get(Telebot);
+            const bot = Container.get(Telebot);
+            // Drop impending updates
+            await bot.bot.getUpdates({ offset: -1 });
             Log.info("[Telegram] Bot started");
             return;
         } catch (e) {

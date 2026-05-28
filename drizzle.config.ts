@@ -4,7 +4,8 @@ import { env } from "@/config/env";
 
 export default defineConfig({
     schema: [
-        './src/modules/sessions/schema.ts'
+        './src/modules/sessions/schema.ts',
+        './src/modules/users/schema.ts',
     ],
     out: './src/migrations',
     dialect: "sqlite",

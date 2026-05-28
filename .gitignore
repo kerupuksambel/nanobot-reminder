@@ -8,3 +8,4 @@ dist/
 
 # DB
 database.db
+database.db-journal
